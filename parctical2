@@ -1,0 +1,85 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define INF 9999  
+
+#define MAX 6     
+void update_near(int near[], int cost[][MAX], int included[], int new_vertex, int n) {
+    for (int i = 0; i < n; i++) {
+        if (!included[i]) {
+            if (near[i] == -1 || cost[i][new_vertex] < cost[i][near[i]]) {
+                near[i] = new_vertex;
+            }
+        }
+    }
+}
+
+int primsMST(int n, int cost[n][n]) {
+    int k = 0, l = 0;
+    int minEdge = INF;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (cost[i][j] < minEdge) {
+                minEdge = cost[i][j];
+                k = i;
+                l = j;
+            }
+        }
+    }
+
+    int minCost = cost[k][l];
+    int near[MAX];
+    int included[MAX] = {0}; // Track included vertices
+
+    included[k] = included[l] = 1;
+    near[k] = near[l] = -1;
+
+    for (int i = 0; i < n; i++) {
+        if (!included[i]) {
+            if (cost[i][k] < cost[i][l])
+                near[i] = k;
+            else
+                near[i] = l;
+        }
+    }
+
+    printf("Edge Selected: (%d, %d) -> Cost: %d\n", k, l, cost[k][l]);
+
+    for (int edges = 1; edges < n - 1; edges++) {
+        int min = INF;
+        int j = -1;
+
+        for (int i = 0; i < n; i++) {
+            if (near[i] != -1 && !included[i] && cost[i][near[i]] < min) {
+                min = cost[i][near[i]];
+                j = i;
+            }
+        }
+
+        if (j != -1) {
+            printf("Edge Selected: (%d, %d) -> Cost: %d\n", j, near[j], cost[j][near[j]]);
+            minCost += cost[j][near[j]];
+            included[j] = 1;
+            near[j] = -1;
+
+            update_near(near, cost, included, j, n);
+        }
+    }
+
+    return minCost;
+}
+
+int main() {
+    int n = 4;
+    int cost[4][4] = {
+        {INF, 2, 1, 4},
+        {2, INF, 6, 3},
+        {1, 6, INF, 5},
+        {4, 3, 5, INF}
+    };
+
+    int totalCost = primsMST(n, cost);
+    printf("\nTotal Minimum Cost of Spanning Tree: %d\n", totalCost);
+
+    return 0;
+}
